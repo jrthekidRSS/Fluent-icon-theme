@@ -25,7 +25,7 @@ Usage:  `./install.sh`  **[OPTIONS...]** **[COLOR VARIANTS...]**
 | red             | Red color folder version              |
 | yellow          | Yellow color folder version           |
 | teal            | Teal color folder version             |
-| (rrggbb)        | Custom color folder version<br>Enter as valid rgb hexadecimal code |
+| (rrggbb)        | Custom color folder version<br>Enter as valid rgb hexadecimal code<br>You can only define one at a time |
 
 By default, only **the standard one** is selected.
 
