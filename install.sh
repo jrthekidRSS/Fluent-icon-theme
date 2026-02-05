@@ -210,6 +210,13 @@ install_theme() {
   local brightprefix=""
   [ -n "$bright" ] && brightprefix="-$bright"
 
+  local THEME_NAME="${NAME}${colorprefix}${brightprefix}"
+  local THEME_DIR="${DEST_DIR}/${THEME_NAME}"
+
+  local TMP_DIR="${THEME_DIR}.tmp.$$"
+  safe_rm_dir "${THEME_DIR}.tmp*"
+  ensure_dir "${TMP_DIR}"
+
   case "$color" in
     standard)
       theme_color='#198ee6' ;;
@@ -232,15 +239,7 @@ install_theme() {
     *)
       # Valid hex color code
       theme_color="#${color}"
-      colorprefix="-custom" ;;
   esac
-
-  local THEME_NAME="${NAME}${colorprefix}${brightprefix}"
-  local THEME_DIR="${DEST_DIR}/${THEME_NAME}"
-
-  local TMP_DIR="${THEME_DIR}.tmp.$$"
-  safe_rm_dir "${THEME_DIR}.tmp*"
-  ensure_dir "${TMP_DIR}"
 
   echo "Installing '${THEME_NAME}'..."
 
