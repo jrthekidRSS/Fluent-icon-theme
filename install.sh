@@ -208,13 +208,6 @@ install_theme() {
   local brightprefix=""
   [ -n "$bright" ] && brightprefix="-$bright"
 
-  local THEME_NAME="${NAME}${colorprefix}${brightprefix}"
-  local THEME_DIR="${DEST_DIR}/${THEME_NAME}"
-
-  local TMP_DIR="${THEME_DIR}.tmp.$$"
-  safe_rm_dir "${THEME_DIR}.tmp*"
-  ensure_dir "${TMP_DIR}"
-
   case "$color" in
     standard)
       theme_color='#198ee6' ;;
@@ -234,7 +227,18 @@ install_theme() {
       theme_color='#32c8ba' ;;
     grey)
       theme_color='#808080' ;;
+    *)
+      # Valid hex color code
+      theme_color="#${color}"
+      colorprefix="-custom" ;;
   esac
+
+  local THEME_NAME="${NAME}${colorprefix}${brightprefix}"
+  local THEME_DIR="${DEST_DIR}/${THEME_NAME}"
+
+  local TMP_DIR="${THEME_DIR}.tmp.$$"
+  safe_rm_dir "${THEME_DIR}.tmp*"
+  ensure_dir "${TMP_DIR}"
 
   echo "Installing '${THEME_NAME}'..."
 
@@ -340,6 +344,9 @@ while [ $# -gt 0 ]; do
     *)
       if [[ " ${COLOR_VARIANTS[*]} " == *" $1 "* ]]; then
         [[ " ${colors[*]-} " != *" $1 "* ]] && colors+=("$1")
+      # Check if value is a valid rgb hex color code
+      elif [[ "$1" =~ ''^([[:xdigit:]]{6})$ ]]; then
+        colors+=("$1")
       else
         die "Unrecognized installation option '$1'. Try '$0 --help'."
       fi
@@ -373,3 +380,5 @@ for color in "${colors[@]}"; do
 done
 
 echo "Done."
+
+
