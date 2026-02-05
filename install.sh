@@ -45,6 +45,8 @@ COLOR VARIANTS:
   red                      Red color folder version
   yellow                   Yellow color folder version
   teal                     Teal color folder version
+  (rrggbb)                 Custom color folder version
+                           Enter as valid rgb hexadecimal code
 
   By default, only the standard one is selected.
 EOF
