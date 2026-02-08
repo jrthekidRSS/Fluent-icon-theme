@@ -6,10 +6,8 @@ else
   DEST_DIR="${HOME}/.local/share/icons"
 fi
 
-readonly SRC_DIR=$(cd $(dirname $0) && pwd)
-
-readonly COLOR_VARIANTS=("standard" "green" "grey" "orange" "pink" "purple" "red" "yellow" "teal")
-readonly BRIGHT_VARIANTS=("light" "dark")
+readonly SRC_DIR="$(dirname -- "${BASH_SOURCE[0]:-$0}")"
+[[ -n "$CACHED_THEME_FILE" ]] || CACHED_THEME_FILE="${PERSONAL_STATE_DIR}/injected-theme.json"
 
 readonly DEFAULT_NAME="fluent"
 
@@ -19,23 +17,9 @@ Usage: $0 [OPTION] | COLOR
 
 OPTIONS:
   -d, --dest               Specify theme destination directory (Default: $HOME/.local/share/icons)
-  -D, --dark-mode          Install the dark mode variant of the theme
   -n, --name               Specify theme name (Default: fluent)
   -h, --help               Show this help
-
-COLOR VARIANTS:
-  standard                 Standard color folder version
-  green                    Green color folder version
-  grey                     Grey color folder version
-  orange                   Orange color folder version
-  pink                     Pink color folder version
-  purple                   Purple color folder version
-  red                      Red color folder version
-  yellow                   Yellow color folder version
-  teal                     Teal color folder version
-  (rrggbb)                 Custom color folder version
-                           Enter as valid rgb hexadecimal code
-                           You can only define one at a time
+  -c, --cached-theme
 
   By default, only the standard one is selected.
 EOF
@@ -52,44 +36,22 @@ safe_sed_replace() {
 }
 
 install_theme() {
-  # Appends a dash if the variables are not empty
-  if [[ "$1" != "standard" ]]; then
-    local colorprefix="$1"
-  fi
-
-  case "$color" in
-    standard)
-      theme_color='#198ee6' ;;
-    purple)
-      theme_color='#dc63ee' ;;
-    pink)
-      theme_color='#ff5c93' ;;
-    red)
-      theme_color='#ff6666' ;;
-    orange)
-      theme_color='#ff9c33' ;;
-    yellow)
-      theme_color='#ffcb52' ;;
-    green)
-      theme_color='#67cb6b' ;;
-    teal)
-      theme_color='#32c8ba' ;;
-    grey)
-      theme_color='#808080' ;;
-    *)
-      # Valid hex color code
-      theme_color="#${color}"
-  esac
-
-  echo "$color"
-
-  local -r dark_variant="$2"
+  local accent mode
+  IFS=$'\n' read -r -d $'\0' accent mode < <(jq -r '"\(.color.secondary)\n\(.info.mode)"' "$CACHED_THEME_FILE")
 
   local -r THEME_NAME="${NAME}"
   local -r THEME_DIR="${DEST_DIR}/${THEME_NAME}"
 
-  if [ -d "${THEME_DIR}" ]; then
-    rm -r "${THEME_DIR}"
+  if [[ -d "${THEME_DIR}" ]]; then
+    local old_accent old_mode
+    IFS=$'\n' read -r -d $'\0' old_accent old_mode < <(jq -r '"\(.accent)\n\(.mode)"' "$DEST_DIR/$THEME_NAME/theme" 2>/dev/null)
+
+    echo "$accent $mode | $old_accent $old_mode"
+    if [[ "$accent $mode" != "$old_accent $old_mode" ]]; then
+        rm -r "${THEME_DIR}"
+    else
+        echo "Theme is already installed" && exit 0
+    fi
   fi
 
   echo "Installing '${THEME_NAME}'..."
@@ -102,10 +64,10 @@ install_theme() {
   sed -i "s/%NAME%/${THEME_NAME//-/ }/g"                                         "${THEME_DIR}/index.theme"
 
   # Base icons
-  cp -r "${SRC_DIR}"/src/{16,22,24,32,256,scalable,symbolic}                   "${THEME_DIR}"
+  cp -r "${SRC_DIR}"/src/{16,22,24,32,256,scalable,symbolic}                     "${THEME_DIR}"
 
   # Light mode icons
-  if ! $dark_variant; then
+  if [[ "$mode" != light ]]; then
     # Change icon color for dark theme
     sed -i "s/#dedede/#363636/g" "${THEME_DIR}"/{16,22,24}/panel/*.svg
   # Dark mode icons
@@ -117,13 +79,19 @@ install_theme() {
     sed -i "s/#363636/#dedede/g" "${THEME_DIR}"/symbolic/{actions,apps,categories,devices,emblems,emotes,mimetypes,places,status}/*.svg
   fi
 
-  if [[ -n "${colorprefix}" ]]; then
+  if [[ "$accent" =~ ''^([[:xdigit:]]{6})$ ]]; then
     for sub in apps places; do
-      safe_sed_replace "#198ee6" "${theme_color}"                              "${THEME_DIR}/scalable/${sub}/*.svg"
+      safe_sed_replace "#198ee6" "#$accent"                                      "${THEME_DIR}/scalable/${sub}/*.svg"
     done
+  else
+    accent="198ee6"
   fi
 
-  cp -r "${SRC_DIR}"/links/{16,22,24,32,256,scalable,symbolic}                 "${THEME_DIR}"
+  if [[ "$mode" != "light" ]] && [[ "$mode" != "dark" ]]; then
+      mode="light"
+  fi
+
+  cp -r "${SRC_DIR}"/links/{16,22,24,32,256,scalable,symbolic}                   "${THEME_DIR}"
 
   ln -sr "${THEME_DIR}/16"                                                       "${THEME_DIR}/16@2x"
   ln -sr "${THEME_DIR}/22"                                                       "${THEME_DIR}/22@2x"
@@ -139,12 +107,14 @@ install_theme() {
   ln -sr "${THEME_DIR}/256"                                                      "${THEME_DIR}/256@3x"
   ln -sr "${THEME_DIR}/scalable"                                                 "${THEME_DIR}/scalable@3x"
 
+  printf "\
+{
+    \"accent\": \"$accent\",
+    \"mode\": \"$mode\"
+}" > "$THEME_DIR/theme"
+
   gtk-update-icon-cache "${THEME_DIR}"
 }
-
-custom_color_set=false
-dark_variant=false
-color="standard"
 
 while [ $# -gt 0 ]; do
   case "${1}" in
@@ -160,24 +130,20 @@ while [ $# -gt 0 ]; do
       usage
       exit 0
       ;;
-    -D|--dark-mode)
-      dark_variant=true
+  -c|--cached-theme)
+      CACHED_THEME_FILE="$2"
+      shift
       ;;
     *)
-      # If the argument is a color variant, append it to the colors to be installed
-      if [[ " ${COLOR_VARIANTS[*]} " = *" ${1} "* ]] && [[ "${colors[*]}" != *${1}* ]] \
-          || [[ "${1}" =~ ''^([[:xdigit:]]{6})$ ]]; then
-
-        # Default name is 'fluent'
-        : "${NAME:="${DEFAULT_NAME}"}"
-        color="${1}"
-        install_theme "${1}"
-        exit 0
-      else
-        echo "ERROR: Unrecognized installation option '${1}'."
-        echo "Try '${0} --help' for more information."
-        exit 1
-      fi
+      echo "ERROR: Unrecognized installation option '${1}'."
+      echo "Try '${0} --help' for more information."
+      exit 1
   esac
+
   shift
 done
+
+: "${NAME:="${DEFAULT_NAME}"}"
+
+[[ -n "$CACHED_THEME_FILE" ]] || (echo "ERROR: '--cached-theme' was never set." 1>&2 && exit 1)
+install_theme
