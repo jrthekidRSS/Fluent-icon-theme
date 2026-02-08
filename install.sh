@@ -81,9 +81,11 @@ install_theme() {
       theme_color="#${color}"
   esac
 
+  echo "$color"
+
   local -r dark_variant="$2"
 
-  local -r THEME_NAME="${NAME}${colorprefix}"
+  local -r THEME_NAME="${NAME}"
   local -r THEME_DIR="${DEST_DIR}/${THEME_NAME}"
 
   if [ -d "${THEME_DIR}" ]; then
@@ -168,8 +170,8 @@ while [ $# -gt 0 ]; do
 
         # Default name is 'fluent'
         : "${NAME:="${DEFAULT_NAME}"}"
-        echo "$NAME"
-        install_theme
+        color="${1}"
+        install_theme "${1}"
         exit 0
       else
         echo "ERROR: Unrecognized installation option '${1}'."
