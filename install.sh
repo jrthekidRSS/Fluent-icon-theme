@@ -54,7 +54,7 @@ safe_sed_replace() {
 install_theme() {
   # Appends a dash if the variables are not empty
   if [[ "$1" != "standard" ]]; then
-    local colorprefix="-$1"
+    local colorprefix="$1"
   fi
 
   case "$color" in
@@ -79,7 +79,6 @@ install_theme() {
     *)
       # Valid hex color code
       theme_color="#${color}"
-      colorprefix="-custom" ;;
   esac
 
   local -r dark_variant="$2"
@@ -167,8 +166,9 @@ while [ $# -gt 0 ]; do
       if [[ " ${COLOR_VARIANTS[*]} " = *" ${1} "* ]] && [[ "${colors[*]}" != *${1}* ]] \
           || [[ "${1}" =~ ''^([[:xdigit:]]{6})$ ]]; then
 
-      # Default name is 'fluent'
+        # Default name is 'fluent'
         : "${NAME:="${DEFAULT_NAME}"}"
+        echo "$NAME"
         install_theme
         exit 0
       else
