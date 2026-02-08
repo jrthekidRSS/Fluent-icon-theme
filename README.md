@@ -1,31 +1,20 @@
-
+## NOTICE: THIS FORK OF THE FLUENT ICON THEME IS MEANT FOR MY PERSONAL USE ONLY
 ![Fluent](fluent-icon.jpg)
 
 ![Fluent](fluent-view.svg)
 
 ## Installation
 
-Usage:  `./install.sh`  **[OPTIONS...]** **[COLOR VARIANTS...]**
+Usage:  `./install.sh`  **[OPTIONS...]** **[COLOR VARIANT]**
 
-|  OPTIONS:   |                                                                               |
-|:------------|:------------------------------------------------------------------------------|
-| -a, --all   | Install all color versions                                                    |
-| -d, --dest  | Specify theme destination directory (**Default:** _$HOME/.local/share/icons_) |
-| -n, --name  | Specify theme name (**Default:** _Fluent_)                                    |
-| -h, --help  | Show this help                                                                |
-
-|  COLOR VARIANTS |                                       |
-|:----------------|:--------------------------------------|
-| standard        | Standard color folder version         |
-| green           | Green color folder version            |
-| grey            | Grey color folder version             |
-| orange          | Orange color folder version           |
-| pink            | Pink color folder version             |
-| purple          | Purple color folder version           |
-| red             | Red color folder version              |
-| yellow          | Yellow color folder version           |
-| teal            | Teal color folder version             |
-| (rrggbb)        | Custom color folder version<br>Enter as valid rgb hexadecimal code<br>You can only define one at a time |
+|  OPTIONS:   |                                                                                         |
+|:------------|:----------------------------------------------------------------------------------------|
+| -d, --dest            | Specify theme destination directory (**Default:** _$HOME/.local/share/icons_) |
+| -n, --name            | Specify theme name (**Default:** _fluent_)                                    |
+| -h, --help            | Show this help                                                                |
+| -c, --cached-theme    | Specify which brightness mode                                                 |
+| -m, --mode            | Specify which brightness mode                                                 |
+| [COLOR VARIANT]       | Custom color folder version<br>Enter as valid rgb hexadecimal code             |
 
 By default, only **the standard one** is selected.
 

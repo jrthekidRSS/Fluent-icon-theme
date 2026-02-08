@@ -21,15 +21,15 @@ read -r -d '' STATE_FILE_FORMAT << EOF
 EOF
 
 usage() {
-cat << EOF
-Usage: $0 [OPTION] | COLOR
+cat <<- EOF
+Usage: $(basename "$0") [OPTION] | [COLOR VARIANT]
 
 OPTIONS:
     -d, --dest               Specify theme destination directory (Default: $HOME/.local/share/icons)
     -n, --name               Specify theme name (Default: fluent)
     -h, --help               Show this help
-    -c, --cached-theme
-    -m, --mode
+    -c, --cached-theme       Location of injected .json file (Default: $CACHED_THEME_FILE)
+    -m, --mode               Specify which brightness mode
 
     By default, only the standard one is selected.
 EOF
@@ -62,7 +62,7 @@ is-valid-mode() {
 
 install-theme() {
     local accent
-    IFS=$'\n' read -r -d $'\0' accent possible_mode < <(jq -r '"\(.color.secondary)\n\(.info.mode)"' "$CACHED_THEME_FILE")
+    IFS=$'\n' read -r -d '' accent possible_mode < <(jq -r '"\(.color.secondary)\n\(.info.mode)"' "$CACHED_THEME_FILE")
 
     if [[ -z "$mode" ]]; then
         if is-valid-mode "$possible_mode"; then
@@ -79,7 +79,7 @@ install-theme() {
     # Abort installing theme if the same exact one is already installed
     if [[ -d "${THEME_DIR}" ]]; then
         local old_accent old_mode
-        IFS=$'\n' read -r -d $'\0' old_accent old_mode < <(jq -r '"\(.accent)\n\(.mode)"' "$STATE_FILE_PATH" 2>/dev/null)
+        IFS=$'\n' read -r -d '' old_accent old_mode < <(jq -r '"\(.accent)\n\(.mode)"' "$STATE_FILE_PATH" 2>/dev/null)
 
         if [[ "$accent $mode" != "$old_accent $old_mode" ]]; then
              rm -r "${THEME_DIR}"
@@ -117,7 +117,7 @@ install-theme() {
             ;;
     esac
 
-    if [[ "$accent" =~ '^([[:xdigit:]]{6})$' ]]; then
+    if [[ "$accent" =~ ^([[:xdigit:]]{6})$ ]]; then
         for sub in apps places; do
            safe-sed-replace "#198ee6" "#$accent"                                      "${THEME_DIR}/scalable/${sub}/*.svg"
         done
