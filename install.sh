@@ -7,7 +7,7 @@ else
 fi
 
 readonly SRC_DIR="$(dirname -- "${BASH_SOURCE[0]:-$0}")"
-[[ -n "$CACHED_THEME_FILE" ]] || CACHED_THEME_FILE="${PERSONAL_STATE_DIR}/injected-theme.json"
+[[ -n "$CACHED_THEME_FILE" ]] || CACHED_THEME_FILE="${PSL_STATE_DIR}/injected-theme.json"
 
 readonly DEFAULT_NAME="fluent"
 readonly STATE_FILE_NAME="theme"
